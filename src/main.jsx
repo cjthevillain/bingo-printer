@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
+  Download,
+  Info,
   Printer,
   RefreshCw,
   RotateCcw,
@@ -257,9 +259,34 @@ function App() {
     customItems: DEFAULT_CUSTOM_ITEMS,
     ranges: DEFAULT_RANGES
   });
+  const [printNotice, setPrintNotice] = useState("");
+  const [installPrompt, setInstallPrompt] = useState(null);
 
   const headers = useMemo(() => parseHeader(settings.headerText), [settings.headerText]);
   const cards = useMemo(() => makeCards(settings), [settings]);
+
+  useEffect(() => {
+    if ("serviceWorker" in window.navigator) {
+      window.navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+
+    function handleInstallPrompt(event) {
+      event.preventDefault();
+      setInstallPrompt(event);
+    }
+
+    function handleInstalled() {
+      setInstallPrompt(null);
+    }
+
+    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
+  }, []);
 
   function setSetting(key, value) {
     setSettings((current) => ({
@@ -273,6 +300,52 @@ function App() {
       ...current,
       seed: `BINGO-${Date.now().toString(36).toUpperCase()}`
     }));
+  }
+
+  async function installApp() {
+    if (!installPrompt) {
+      return;
+    }
+
+    await installPrompt.prompt();
+    setInstallPrompt(null);
+  }
+
+  function isMobilePrintRisk() {
+    const navigatorValue = window.navigator || {};
+    const agent = navigatorValue.userAgent || "";
+    const iOS = /iPad|iPhone|iPod/.test(agent)
+      || (navigatorValue.platform === "MacIntel" && navigatorValue.maxTouchPoints > 1);
+    const hasMatchMedia = typeof window.matchMedia === "function";
+    const standalone = (hasMatchMedia && window.matchMedia("(display-mode: standalone)").matches)
+      || navigatorValue.standalone === true;
+    const coarsePointer = hasMatchMedia && window.matchMedia("(pointer: coarse)").matches;
+    const narrowViewport = window.innerWidth <= 720;
+
+    return iOS || standalone || coarsePointer || narrowViewport;
+  }
+
+  function handlePrint() {
+    if (typeof window.print !== "function") {
+      setPrintNotice("This browser cannot open print from the button. Use the browser share menu and choose Print.");
+      return;
+    }
+
+    function openPrintPanel() {
+      try {
+        window.print();
+      } catch {
+        setPrintNotice("This browser cannot open print from the button. Use the browser share menu and choose Print.");
+      }
+    }
+
+    if (isMobilePrintRisk()) {
+      setPrintNotice("If no print panel opened, use Safari or Chrome share menu and choose Print.");
+      window.setTimeout(openPrintPanel, 120);
+      return;
+    }
+
+    openPrintPanel();
   }
 
   function resetSettings() {
@@ -302,7 +375,7 @@ function App() {
         </div>
 
         <div className="button-row">
-          <button className="primary-button" type="button" onClick={() => window.print()} title="Print cards">
+          <button className="primary-button" type="button" onClick={handlePrint} title="Print cards">
             <Printer size={18} aria-hidden="true" />
             Print
           </button>
@@ -314,7 +387,23 @@ function App() {
             <RotateCcw size={18} aria-hidden="true" />
             Reset
           </button>
+          {installPrompt ? (
+            <button type="button" onClick={installApp} title="Install app">
+              <Download size={18} aria-hidden="true" />
+              Install
+            </button>
+          ) : null}
         </div>
+
+        {printNotice ? (
+          <div className="notice" role="status">
+            <Info size={18} aria-hidden="true" />
+            <span>{printNotice}</span>
+            <button type="button" onClick={() => setPrintNotice("")}>
+              OK
+            </button>
+          </div>
+        ) : null}
 
         <div className="control-grid">
           <Field label="Cards">
