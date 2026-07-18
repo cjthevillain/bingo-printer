@@ -1,0 +1,56 @@
+name: Work item
+description: Capture one change, bug, investigation, or documentation task.
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of work
+      options:
+        - Improvement or new feature
+        - Bug or unexpected behaviour
+        - Investigation or decision
+        - Maintenance or documentation
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the result you want in plain language.
+      placeholder: I want...
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: What is happening now?
+      description: Add only the context, link, screenshot, or error that helps explain the request.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: List the checks that would make you comfortable calling this finished.
+      placeholder: |-
+        - [ ] The requested behaviour works
+        - [ ] Relevant checks pass
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Furthest action allowed
+      description: The AI must stop before any action beyond this choice.
+      options:
+        - Local investigation or code changes only
+        - Commit locally, but do not push
+        - Push a branch and open a draft pull request
+        - Preview or deployment work (confirm separately before acting)
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: Optional. Leave blank if the AI can discover the rest.
