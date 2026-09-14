@@ -13,7 +13,7 @@ Printable black-and-white Bingo card generator for letter-size paper.
 
 Deployment domain: `https://bingo.cjv.app`
 
-The legacy host `https://bingo.x-os.sh` is retained and 301-redirects to the
+The legacy host `https://bingo.x-os.sh` 301-redirects to the
 canonical host, preserving paths and query strings. DNS, HTTPS, application and
 `/health` checks have passed on the new host.
 
