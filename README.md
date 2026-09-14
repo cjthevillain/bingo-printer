@@ -11,11 +11,10 @@ Printable black-and-white Bingo card generator for letter-size paper.
 
 ## Deployment
 
-Migration target: `https://bingo.cjv.app`
+Deployment domain: `https://bingo.cjv.app`
 
-The current deployment remains at `https://bingo.x-os.sh` until the new domain
-passes DNS, HTTPS, application and `/health` checks. Keep the old host available
-for compatibility, then redirect browser requests directly to the new host while
-preserving paths and query strings.
+The legacy host `https://bingo.x-os.sh` is retained and 301-redirects to the
+canonical host, preserving paths and query strings. DNS, HTTPS, application and
+`/health` checks have passed on the new host.
 
 Coolify should use the Dockerfile at `/Dockerfile` and expose port `80`.
